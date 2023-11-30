@@ -144,6 +144,7 @@ plt.show()                                                 # Matplotlibで作成
 
 
 # 波形をスペクトログラムに変換する
+# スペクトログラムは、時間の経過に伴って音響信号の周波数成分がどのように変化するかを視覚化するための手法
 
 def get_spectrogram(waveform):
   # Zero-padding for an audio waveform with less than 16,000 samples.
@@ -218,10 +219,30 @@ def plot_spectrogram(spectrogram, ax):
                                                                     # np.finfo(float).eps: 浮動小数点数型 (float) における最小の正の値を返す NumPy の関数です。この値は非常に小さな正の値で、計算の安定性を保つために使用されます。
                                                                     # spectrogram.T + np.finfo(float).eps: スペクトログラムの転置行列の各要素に np.finfo(float).eps を加算しています。
                                                                     # 対数変換の際にゼロや非常に小さな値が現れた場合に、対数が発散してしまうのを防ぐために行われます。 
-  height = log_spec.shape[0]
+  height = log_spec.shape[0]                                        # 時間が縦軸になり、各時間点での周波数成分が横軸になります。
   width = log_spec.shape[1]                                         # スペクトログラムの高さと幅を取得します。
   X = np.linspace(0, np.size(spectrogram), num=width, dtype=int)    # スペクトログラムの横軸（時間）に対するデータを作成します。print(np.linspace(0, 10, 3)) -> [ 0.  5. 10.] linspace 等差数列を生成する
   Y = range(height)                                                 # スペクトログラムの縦軸（周波数）に対するデータを作成します。
   ax.pcolormesh(X, Y, log_spec)                                     # pcolormesh を使用して、スペクトログラムをカラーメッシュとしてプロットします。これにより、スペクトログラムの強度が色で表現されます。
 
+
+# 時間の経過に伴う例の波形と対応するスペクトログラムをプロット
+
+fig, axes = plt.subplots(2, figsize=(12, 8))     # 2つのサブプロットを持つ図を作成
+timescale = np.arange(waveform.shape[0])         # print(np.arange(3)) -> [0 1 2], print(np.arange(3, 10)) -> [3 4 5 6 7 8 9]
+axes[0].plot(timescale, waveform.numpy())        # 1つ目のサブプロットに波形をプロットします。横軸に時間(timescale)、縦軸に波形の振幅(waveform)が配置されます。
+axes[0].set_title('Waveform')                    # タイトル 'Waveform' を設定
+axes[0].set_xlim([0, 16000])                     # 横軸の表示範囲を0から16000までに設定
+
+plot_spectrogram(spectrogram.numpy(), axes[1])   #  2つ目のサブプロットにスペクトログラムをプロットするためのヘルパー関数 plot_spectrogram を呼び出します
+axes[1].set_title('Spectrogram')                 # 2つ目のサブプロットにタイトル 'Spectrogram' を設定
+plt.show()                                       # 図を表示
+
+
+# 波形データセットをスペクトログラムとそれに対応するラベルに整数IDとして変換する関数を定義
+
+def get_spectrogram_and_label_id(audio, label):
+  spectrogram = get_spectrogram(audio)
+  label_id = tf.argmax(label == commands)
+  return spectrogram, label_id
 
